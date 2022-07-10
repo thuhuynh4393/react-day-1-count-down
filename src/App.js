@@ -3,7 +3,7 @@ import './App.css';
 import { useState, useEffect } from "react";
 
 function App() {
-  const [minnute, setMinute] = useState(0)
+  const [minute, setMinute] = useState(0)
   const [sencond, setSecond] = useState(0)
   const [totalSeconds, setTotalSeconds] = useState(0)
   const [countDown, setCountDonwn] = useState('00:00')
@@ -25,41 +25,52 @@ function App() {
 
   function onStart(){
     if(running) return;
-    setTotalSeconds((Number(minnute)*60)+Number(sencond))
+    setTotalSeconds((Number(minute)*60)+Number(sencond))
     setRunning(true)
   }
 
   function onReset(){
-    setRunning(0)
+    clearTimeout(timer);
+    setRunning(false)
     setTotalSeconds(0)
     setCountDonwn('00:00')
     setSecond(0)
+    setMinute(0)
+    clearTimeout(timer);
   }
 
   function onChangeStatus(){
+    if(totalSeconds<=0) return setRunning(false)
     setRunning(!running)
+    if(!running){
+      clearTimeout(timer);
+    }
+  }
+
+  function onCountDown(){
+    const timerCountDown = setTimeout(() => {
+      setTotalSeconds(preState => preState -1)
+      format()
+    }, 1000);
+    setTimer(timerCountDown)
   }
 
   useEffect(()=>{
     if(!running) return
-    setTimeout(() => {
-      setTotalSeconds(preState => preState -1)
-      format()
-    }, 1000);
+    onCountDown()
   },[running])
 
   useEffect(()=>{
-    if(!running || totalSeconds<0) return
-    setTimeout(() => {
-      setTotalSeconds(preState => preState -1)
-      format()
-    }, 1000);
+    if(!running) return
+    if(totalSeconds<0) return setRunning(false)
+    
+    onCountDown()
   },[totalSeconds])
 
   return (
     <div className="App">
-      <input type={"number"} onChange={e=>setMinute(e.target.value)}/> Minutes
-      <input type={"number"} onChange={e=>setSecond(e.target.value)}/> Senconds
+      <input value={minute} type={"number"} onChange={e=>setMinute(e.target.value)}/> Minutes
+      <input value={sencond} type={"number"} onChange={e=>setSecond(e.target.value)}/> Senconds
       <button onClick={onStart}>Start</button>
       <button onClick={onChangeStatus}>Pause/Resume</button>
       <button onClick={onReset}>Reset</button>
